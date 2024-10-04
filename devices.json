@@ -1,0 +1,8 @@
+[
+    {
+        "name": "Test",
+        "mac": "00:00:00:00:00",
+        "ip": "192.168.1.1",
+        "icon": "X:/Dev-workspace/Python/SC-PYWOL/assets/interface/favicon.png"
+    }
+]

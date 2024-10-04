@@ -1,0 +1,70 @@
+/* style.qss */
+
+QWidget {
+    background-color: #2b2b2b;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Boutons */
+QPushButton {
+    background-color: #4CAF50;
+    color: white;
+    border: 1px solid #4CAF50;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: #45a049;
+}
+
+/* Boutons Désactivés */
+QPushButton:disabled {
+    background-color: #555555;
+    color: #cccccc;
+}
+
+/* Ligne d'édition de texte */
+QLineEdit {
+    background-color: #3C3F41;
+    border: 1px solid #4CAF50;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+}
+
+QLineEdit:focus {
+    border: 2px solid #67D17D;
+}
+
+/* Labels */
+QLabel {
+    color: #BDBDBD;
+    font-size: 12px;
+}
+
+/* Liste des périphériques */
+QListWidget {
+    background-color: #3C3F41;
+    border: 1px solid #4CAF50;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+}
+
+QListWidget::item {
+    padding: 10px;
+}
+
+QListWidget::item:selected {
+    background-color: #67D17D;
+    color: black;
+}
+
+/* Fenêtre */
+QMainWindow {
+    background-color: #2b2b2b;
+}
