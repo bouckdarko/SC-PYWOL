@@ -1,4 +1,3 @@
-
 # SC-PYWOL
 
 **SC-PYWOL** est une application Windows avec une interface graphique personnalisable développée en Python. Elle permet d'envoyer des paquets **Wake-On-LAN (WOL)** pour réveiller des périphériques sur un réseau local. L'application offre la gestion de plusieurs périphériques, chacun pouvant avoir un nom, une adresse MAC, une adresse IP optionnelle, ainsi qu'une icône personnalisée.
@@ -76,37 +75,18 @@ pip install -r requirements.txt
 
 ## Personnalisation
 
-Les paramètres de l'interface et des périphériques sont sauvegardés dans les fichiers JSON suivants :
+Les paramètres de l'interface et des périphériques sont sauvegardés dans une base de données SQLite. Voici les informations sur les tables utilisées :
 
-1. **`settings.json`** : Contient les paramètres de l'interface.
-   ```json
-   {
-     "device_text_size": 12,
-     "accent_color": "#4CAF50",
-     "text_color": "#FFFFFF"
-   }
-   ```
+1. **`devices`** : Contient la liste des périphériques ajoutés à l'application.
+   - **name** : Nom du périphérique.
+   - **mac** : Adresse MAC du périphérique.
+   - **ip** : Adresse IP du périphérique (optionnelle).
+   - **icon** : Chemin vers l'icône personnalisée du périphérique.
+
+2. **`settings`** : Contient les paramètres de l'interface.
    - **device_text_size** : Taille du texte des périphériques.
    - **accent_color** : Couleur d'accentuation de l'interface (boutons, bordures).
    - **text_color** : Couleur du texte dans l'interface.
-
-2. **`devices.json`** : Contient la liste des périphériques ajoutés à l'application.
-   ```json
-   [
-     {
-       "name": "Laptop",
-       "mac": "00:1F:2G:3H:4I:5J",
-       "ip": "192.168.1.11",
-       "icon": "path/to/icon.png"
-     },
-     {
-       "name": "Computer",
-       "mac": "01:1F:2G:3H:4I:5J",
-       "ip": null,
-       "icon": "path/to/icon.png"
-     }
-   ]
-   ```
 
 ## Contribuer
 

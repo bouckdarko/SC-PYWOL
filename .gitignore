@@ -2,5 +2,13 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyc
 *.pyd
 venv/
+
+# Ignore build and dist folders
+build/
+dist/
+
+# Ignore database file
+*.db
