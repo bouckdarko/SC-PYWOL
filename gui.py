@@ -1,16 +1,37 @@
 import sys
 import json
 import os
+import re
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-                             QLineEdit, QLabel, QListWidget, QListWidgetItem, QFileDialog, QMainWindow, QDesktopWidget, QColorDialog, QSlider, QGridLayout, QFrame)
+                             QLineEdit, QLabel, QListWidget, QListWidgetItem, QFileDialog, QMainWindow, QDesktopWidget, QColorDialog, QSlider, QGridLayout, QFrame, QMessageBox)
 from PyQt5.QtGui import QIcon, QCursor, QFont, QPainter, QColor, QPixmap
 from PyQt5.QtCore import Qt, QPoint, QSize
+from wol import wake_device
 
 # Fichier JSON pour stocker les appareils et les paramètres
 DEVICE_FILE = 'devices.json'
 SETTINGS_FILE = 'settings.json'
 
 BORDER_WIDTH = 5  # Largeur de la zone cliquable pour redimensionner
+
+# Fonction pour obtenir le bon chemin des ressources
+def get_resource_path(relative_path):
+    """Obtenir le chemin d'un fichier ou d'une ressource quand le programme est empaqueté avec PyInstaller."""
+    try:
+        # PyInstaller crée un dossier temporaire et stocke le chemin dans _MEIPASS
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+def is_valid_mac_address(mac):
+    """Vérifie si l'adresse MAC a un format valide."""
+    # Le format des adresses MAC peut varier, mais généralement :
+    # - 00:1F:2G:3H:4I:5J
+    # - 00-1F-2G-3H-4I-5J
+    # - 001F2G3H4I5J (sans séparateurs)
+    mac_regex = re.compile(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$|^[0-9A-Fa-f]{12}$')
+    return mac_regex.match(mac) is not None
 
 class CustomTitleBar(QWidget):
     """Barre de titre personnalisée."""
@@ -245,6 +266,30 @@ class WOLApp(QMainWindow):
         delete_button.clicked.connect(self.delete_device)
         main_layout.addWidget(delete_button)
 
+        # Bouton pour réveiller le périphérique sélectionné
+        wake_button = QPushButton('Wake Device', self)
+        wake_button.clicked.connect(self.wake_selected_device)
+        main_layout.addWidget(wake_button)
+
+        # Champ de saisie pour l'adresse MAC
+        self.mac_input = QLineEdit(self)
+        self.mac_input.setPlaceholderText("Entrez l'adresse MAC")
+        main_layout.addWidget(self.mac_input)
+
+        # Bouton pour réveiller le périphérique à partir de l'adresse MAC
+        wake_button = QPushButton('Wake from MAC Input', self)
+        wake_button.clicked.connect(self.wake_from_mac_input)
+        main_layout.addWidget(wake_button)
+
+        def wake_from_mac_input(self):
+            """Envoyer un paquet WOL à l'adresse MAC entrée manuellement."""
+            mac_address = self.mac_input.text().strip()  # Obtenez l'adresse MAC saisie
+            if is_valid_mac_address(mac_address):  # Vérifiez le format de l'adresse MAC
+                wake_device(mac_address)  # Appelle la fonction pour envoyer le paquet
+                print(f"Magic packet sent to {mac_address}")
+            else:
+                print(f"L'adresse MAC '{mac_address}' est invalide.")
+
         # Icône en bas à droite pour indiquer le redimensionnement
         self.resize_icon = QPushButton(self)
         icon_path = os.path.abspath("assets/interface/resize_icon.svg")
@@ -275,6 +320,27 @@ class WOLApp(QMainWindow):
 
         # Ajouter la favicon
         self.setWindowIcon(QIcon("assets/interface/favicon.png"))
+
+    def wake_selected_device(self):
+        """Réveille le périphérique sélectionné dans la liste."""
+        selected_item = self.device_list.currentItem()
+        if selected_item:
+            device_name = selected_item.text().split(' (')[0]  # Extraire le nom
+            device = next((d for d in self.devices if d["name"] == device_name), None)  # Trouver le périphérique
+            if device and "mac" in device:
+                mac_address = device["mac"]
+                if is_valid_mac_address(mac_address):  # Vérification de l'adresse MAC
+                    wake_device(mac_address)  # Appeler la fonction wake_device
+                    print(f"Magic packet sent to {mac_address}")
+                else:
+                    # Affichez un message d'erreur si l'adresse MAC est invalide
+                    print(f"L'adresse MAC '{mac_address}' est invalide.")
+                    QMessageBox.warning(self, "Erreur d'adresse MAC", "L'adresse MAC du périphérique sélectionné est invalide.")
+            else:
+                print("Aucune adresse MAC trouvée pour le périphérique sélectionné.")
+        else:
+            print("Veuillez sélectionner un périphérique dans la liste.")
+
 
     def load_devices(self):
         """Charger les périphériques depuis le fichier JSON."""
@@ -339,6 +405,7 @@ class WOLApp(QMainWindow):
         add_window.setLayout(add_layout)
         add_window.show()
 
+
     def save_device(self, name, mac, ip, icon, window):
         """Sauvegarder un nouvel appareil."""
         device = {
@@ -368,12 +435,15 @@ class WOLApp(QMainWindow):
 
     def wake_from_mac_input(self):
         """Envoyer un paquet WOL à l'adresse MAC entrée manuellement."""
-        mac_address = self.mac_input.text()
-        if mac_address:
-            wake_device(mac_address)
+        mac_address = self.mac_input.text().strip()  # Obtenez l'adresse MAC saisie
+        if is_valid_mac_address(mac_address):  # Vérifiez le format de l'adresse MAC
+            wake_device(mac_address)  # Appelle la fonction pour envoyer le paquet
             print(f"Magic packet sent to {mac_address}")
         else:
-            print("Please enter a valid MAC address.")
+            # Affichez un message d'erreur
+            print(f"L'adresse MAC '{mac_address}' est invalide.")
+            # Optionnel : vous pouvez également afficher un message d'erreur dans l'interface
+            QMessageBox.warning(self, "Erreur d'adresse MAC", "L'adresse MAC saisie est invalide. Veuillez réessayer.")
 
     def open_settings(self):
         """Ouvrir la fenêtre des paramètres."""
@@ -491,8 +561,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # Charger et appliquer le style QSS (si disponible)
-    if os.path.exists("style.qss"):
-        with open("style.qss", "r") as f:
+    if os.path.exists(get_resource_path("style.qss")):
+        with open(get_resource_path("style.qss"), "r") as f:
             app.setStyleSheet(f.read())
 
     ex = WOLApp()
